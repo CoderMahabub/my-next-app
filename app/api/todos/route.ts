@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 interface Todo {
     id: number,
@@ -17,4 +17,19 @@ const todos: Todo[] = [
 
 export async function GET() {
     return NextResponse.json(todos)
+}
+
+export async function POST(request: NextRequest) {
+    const body = await request.json()
+
+    const newTodo: Todo = {
+        id: Date.now(),
+        title: body.title,
+        completed: false,
+        priority: body.priority
+    }
+
+
+    todos.push(newTodo)
+    return NextResponse.json(newTodo, { status: 201 })
 }

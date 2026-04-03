@@ -25,14 +25,26 @@ export default function Home() {
       })
   }, [])
 
-  const addTodo = () => {
+  // const addTodo = () => {
+  //   if (title.trim() === "") return
+  //   const newTodo: Todo = {
+  //     id: Date.now(),
+  //     title,
+  //     completed: false,
+  //     priority
+  //   }
+  //   setTodos([...todos, newTodo])
+  //   setTitle("")
+  // }
+  const addTodo = async () => {
     if (title.trim() === "") return
-    const newTodo: Todo = {
-      id: Date.now(),
-      title,
-      completed: false,
-      priority
-    }
+
+    const res = await fetch("api/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, priority }),
+    })
+    const newTodo: Todo = await res.json()
     setTodos([...todos, newTodo])
     setTitle("")
   }
