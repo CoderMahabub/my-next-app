@@ -19,6 +19,7 @@ export async function GET() {
     return NextResponse.json(todos)
 }
 
+
 export async function POST(request: NextRequest) {
     const body = await request.json()
 

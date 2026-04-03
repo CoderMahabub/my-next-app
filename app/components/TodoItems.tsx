@@ -4,9 +4,10 @@ interface TodoItemProps {
     completed: boolean
     priority: "low" | "medium" | "high"
     onComplete: (id: number) => void
+    onDelete: (id: number) => void
 }
 
-export default function TodoItem({ id, title, completed, priority, onComplete }: TodoItemProps) {
+export default function TodoItem({ id, title, completed, priority, onComplete, onDelete }: TodoItemProps) {
     return (
         <div className="p-4 border rounded-lg mb-2 flex justify-between items-center">
             <div>
@@ -23,7 +24,14 @@ export default function TodoItem({ id, title, completed, priority, onComplete }:
                     Done
                 </button>
             )}
-            {completed && <span>✅</span>}
+
+            <button
+                onClick={() => onDelete(id)}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+                Delete
+            </button>
+            {/* {completed && <span>✅</span>} */}
         </div>
     )
 }

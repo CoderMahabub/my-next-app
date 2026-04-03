@@ -36,6 +36,20 @@ export default function Home() {
   //   setTodos([...todos, newTodo])
   //   setTitle("")
   // }
+  const suggestPriority = async () => {
+    if (title.trim() === "") return
+
+    const res = await fetch("/api/suggest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    })
+
+    const data = await res.json()
+    if (data.priority === "low" || data.priority === "medium" || data.priority === "high") {
+      setPriority(data.priority)
+    }
+  }
   const addTodo = async () => {
     if (title.trim() === "") return
 
@@ -57,6 +71,12 @@ export default function Home() {
 
   if (loading) return <p className="p-8 text-2xl text-green-500 text-center">Loading...</p>
 
+  const deleteTodo = async (id: number) => {
+    await fetch(`/api/tods/${id}`, {
+      method: "DELETE",
+    })
+    setTodos(todos.filter(todo => todo.id !== id))
+  }
 
   return (
     <main className="p-8 max-w-lg mx-auto">
@@ -69,7 +89,12 @@ export default function Home() {
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Add your Todo..."
       />
-
+      <button
+        onClick={suggestPriority}
+        className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-800"
+      >
+        AI ✨
+      </button>
       <select
         className="border rounded px-3 py-2"
         value={priority}
@@ -93,6 +118,7 @@ export default function Home() {
           key={todo.id}
           {...todo}
           onComplete={completeTodo}
+          onDelete={deleteTodo}
         />
       ))}
     </main>
