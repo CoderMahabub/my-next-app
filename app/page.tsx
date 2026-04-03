@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import TodoItem from "./components/TodoItems"
 
 interface Todo {
@@ -11,14 +11,19 @@ interface Todo {
 }
 
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([
-    { id: 1, title: "Learn TypeScript", completed: true, priority: "high" },
-    { id: 2, title: "Build React app", completed: false, priority: "medium" },
-    { id: 3, title: "Deploy to AWS", completed: false, priority: "high" },
-  ])
-
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState<string>("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [loading, setLoading] = useState<boolean>(true)
+
+  useEffect(() => {
+    fetch("/api/todos")
+      .then(res => res.json())
+      .then(data => {
+        setTodos(data)
+        setLoading(false)
+      })
+  }, [])
 
   const addTodo = () => {
     if (title.trim() === "") return
@@ -38,9 +43,13 @@ export default function Home() {
     ))
   }
 
+  if (loading) return <p className="p-8 text-2xl text-green-500 text-center">Loading...</p>
+
+
   return (
     <main className="p-8 max-w-lg mx-auto">
       <h1 className="text-3xl font-bold mb-6">Todo App</h1>
+
       <input
         className="border rounded px-3 py-2 flex-1"
         type="text"
