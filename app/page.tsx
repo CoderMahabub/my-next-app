@@ -93,7 +93,7 @@ export default function Home() {
         onClick={suggestPriority}
         className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-800"
       >
-        AI ✨
+        AI Priority✨
       </button>
       <select
         className="border rounded px-3 py-2"
