@@ -11,6 +11,8 @@ export default function Navbar() {
             <div className="flex gap-6">
                 <Link href="/" className="hover:text-gray-300">Home</Link>
                 <Link href="/about" className="hover:text-gray-300">About</Link>
+                <Link href="/todos" className="hover:text-gray-300">Todos</Link>
+                <Link href="/contact" className="hover:text-gray-300">Contact</Link>
             </div>
 
             <div>
@@ -29,7 +31,7 @@ export default function Navbar() {
                         onClick={() => signIn("google")}
                         className="bg-blue-500 px-3 py-2 rounded text-sm hover:bg-blue-600"
                     >
-                        Login With Google
+                        Login with Google
                     </button>
                 )}
             </div>

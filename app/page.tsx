@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession, signIn } from "next-auth/react"
 import TodoItem from "./components/TodoItems"
 
 interface Todo {
@@ -11,49 +12,26 @@ interface Todo {
 }
 
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [title, setTitle] = useState<string>("");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const { data: session, status } = useSession()
+  const [todos, setTodos] = useState<Todo[]>([])
+  const [title, setTitle] = useState<string>("")
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium")
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    fetch("/api/todos")
-      .then(res => res.json())
-      .then(data => {
-        setTodos(data)
-        setLoading(false)
-      })
-  }, [])
-
-  // const addTodo = () => {
-  //   if (title.trim() === "") return
-  //   const newTodo: Todo = {
-  //     id: Date.now(),
-  //     title,
-  //     completed: false,
-  //     priority
-  //   }
-  //   setTodos([...todos, newTodo])
-  //   setTitle("")
-  // }
-  const suggestPriority = async () => {
-    if (title.trim() === "") return
-
-    const res = await fetch("/api/suggest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title }),
-    })
-
-    const data = await res.json()
-    if (data.priority === "low" || data.priority === "medium" || data.priority === "high") {
-      setPriority(data.priority)
+    if (session) {
+      fetch("/api/todos")
+        .then(res => res.json())
+        .then(data => {
+          setTodos(data)
+          setLoading(false)
+        })
     }
-  }
+  }, [session])
+
   const addTodo = async () => {
     if (title.trim() === "") return
-
-    const res = await fetch("api/todos", {
+    const res = await fetch("/api/todos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, priority }),
@@ -69,56 +47,96 @@ export default function Home() {
     ))
   }
 
-  if (loading) return <p className="p-8 text-2xl text-green-500 text-center">Loading...</p>
-
   const deleteTodo = async (id: number) => {
-    await fetch(`/api/tods/${id}`, {
-      method: "DELETE",
-    })
+    await fetch(`/api/todos/${id}`, { method: "DELETE" })
     setTodos(todos.filter(todo => todo.id !== id))
   }
 
+  const suggestPriority = async () => {
+    if (title.trim() === "") return
+    const res = await fetch("/api/suggest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    })
+    const data = await res.json()
+    if (data.priority === "low" || data.priority === "medium" || data.priority === "high") {
+      setPriority(data.priority)
+    }
+  }
+
+  // Loading state
+  if (status === "loading") {
+    return <p className="p-8">Loading...</p>
+  }
+
+  // Not logged in
+  if (!session) {
+    return (
+      <main className="p-8 max-w-lg mx-auto text-center">
+        <h1 className="text-3xl font-bold mb-4">Todo App</h1>
+        <p className="text-gray-500 mb-6">To See the TODO Items Please LogIn first!</p>
+        <button
+          onClick={() => signIn("google")}
+          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          LogIn with Google
+        </button>
+      </main>
+    )
+  }
+
+  if (loading) return <p className="p-8">Loading todos...</p>
+
   return (
     <main className="p-8 max-w-lg mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Todo App</h1>
+      <h1 className="text-3xl font-bold mb-2">Todo App</h1>
+      <p className="text-gray-500 mb-6">Welcome, {session.user?.name}!</p>
 
-      <input
-        className="border rounded px-3 py-2 flex-1"
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Add your Todo..."
-      />
-      <button
-        onClick={suggestPriority}
-        className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-800"
-      >
-        AI Priority✨
-      </button>
-      <select
-        className="border rounded px-3 py-2"
-        value={priority}
-        onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
-      >
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
-
-
-      <button
-        onClick={addTodo}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Add Item
-      </button>
+      <div className="flex gap-2 mb-6">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="New todo..."
+          className="border rounded px-3 py-2 flex-1"
+        />
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
+          className="border rounded px-3 py-2"
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button
+          onClick={suggestPriority}
+          className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+        >
+          AI ✨
+        </button>
+        <button
+          onClick={addTodo}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Add
+        </button>
+      </div>
 
       {todos.map(todo => (
+        // <TodoItems
+        //   key={todo.id}
+        //   {...todo}
+        //   onComplete={completeTodo}
+        //   onDelete={deleteTodo}
+        // />
         <TodoItem
           key={todo.id}
           {...todo}
           onComplete={completeTodo}
           onDelete={deleteTodo}
+
         />
       ))}
     </main>
