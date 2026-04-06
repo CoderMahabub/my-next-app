@@ -1,73 +1,79 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSession, signIn } from "next-auth/react"
-import TodoItem from "./components/TodoItems"
+import { useState, useEffect } from "react";
+import { useSession, signIn } from "next-auth/react";
+import TodoItem from "./components/TodoItems";
 
 interface Todo {
-  id: number
-  title: string
-  completed: boolean
-  priority: "low" | "medium" | "high"
+  id: number;
+  title: string;
+  completed: boolean;
+  priority: "low" | "medium" | "high";
 }
 
 export default function Home() {
-  const { data: session, status } = useSession()
-  const [todos, setTodos] = useState<Todo[]>([])
-  const [title, setTitle] = useState<string>("")
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium")
-  const [loading, setLoading] = useState<boolean>(true)
+  const { data: session, status } = useSession();
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [title, setTitle] = useState<string>("");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (session) {
       fetch("/api/todos")
-        .then(res => res.json())
-        .then(data => {
-          setTodos(data)
-          setLoading(false)
-        })
+        .then((res) => res.json())
+        .then((data) => {
+          setTodos(data);
+          setLoading(false);
+        });
     }
-  }, [session])
+  }, [session]);
 
   const addTodo = async () => {
-    if (title.trim() === "") return
+    if (title.trim() === "") return;
     const res = await fetch("/api/todos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, priority }),
-    })
-    const newTodo: Todo = await res.json()
-    setTodos([...todos, newTodo])
-    setTitle("")
-  }
+    });
+    const newTodo: Todo = await res.json();
+    setTodos([...todos, newTodo]);
+    setTitle("");
+  };
 
   const completeTodo = (id: number) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, completed: true } : todo
-    ))
-  }
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, completed: true } : todo,
+      ),
+    );
+  };
 
   const deleteTodo = async (id: number) => {
-    await fetch(`/api/todos/${id}`, { method: "DELETE" })
-    setTodos(todos.filter(todo => todo.id !== id))
-  }
+    await fetch(`/api/todos/${id}`, { method: "DELETE" });
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
 
   const suggestPriority = async () => {
-    if (title.trim() === "") return
+    if (title.trim() === "") return;
     const res = await fetch("/api/suggest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title }),
-    })
-    const data = await res.json()
-    if (data.priority === "low" || data.priority === "medium" || data.priority === "high") {
-      setPriority(data.priority)
+    });
+    const data = await res.json();
+    if (
+      data.priority === "low" ||
+      data.priority === "medium" ||
+      data.priority === "high"
+    ) {
+      setPriority(data.priority);
     }
-  }
+  };
 
   // Loading state
   if (status === "loading") {
-    return <p className="p-8">Loading...</p>
+    return <p className="p-8">Loading...</p>;
   }
 
   // Not logged in
@@ -75,7 +81,9 @@ export default function Home() {
     return (
       <main className="p-8 max-w-lg mx-auto text-center">
         <h1 className="text-3xl font-bold mb-4">Todo App</h1>
-        <p className="text-gray-500 mb-6">To See the TODO Items Please LogIn first!</p>
+        <p className="text-gray-500 mb-6">
+          To See the TODO Items Please LogIn first!
+        </p>
         <button
           onClick={() => signIn("google")}
           className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
@@ -83,10 +91,10 @@ export default function Home() {
           LogIn with Google
         </button>
       </main>
-    )
+    );
   }
 
-  if (loading) return <p className="p-8">Loading todos...</p>
+  if (loading) return <p className="p-8">Loading todos...</p>;
 
   return (
     <main className="p-8 max-w-lg mx-auto">
@@ -103,7 +111,9 @@ export default function Home() {
         />
         <select
           value={priority}
-          onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
+          onChange={(e) =>
+            setPriority(e.target.value as "low" | "medium" | "high")
+          }
           className="border rounded px-3 py-2"
         >
           <option value="low">Low</option>
@@ -124,7 +134,7 @@ export default function Home() {
         </button>
       </div>
 
-      {todos.map(todo => (
+      {todos.map((todo) => (
         // <TodoItems
         //   key={todo.id}
         //   {...todo}
@@ -136,9 +146,8 @@ export default function Home() {
           {...todo}
           onComplete={completeTodo}
           onDelete={deleteTodo}
-
         />
       ))}
     </main>
-  )
+  );
 }
